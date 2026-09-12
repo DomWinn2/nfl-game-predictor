@@ -6,10 +6,17 @@ import pandas as pd
 from sklearn.metrics import brier_score_loss, log_loss
 
 ELO_HISTORY_PATH = Path("data/processed/elo_history.parquet")
+TEST_SEASON = 2025
 
 
-def evaluate_elo_predictions(elo_history: pd.DataFrame) -> dict[str, float]:
+def evaluate_elo_predictions(
+    elo_history: pd.DataFrame,
+    season: int | None = None,
+) -> dict[str, float]:
     """Return accuracy and probability-quality metrics for Elo forecasts."""
+    if season is not None:
+        elo_history = elo_history.loc[elo_history["season"] == season]
+
     completed_non_ties = elo_history.loc[
         elo_history["home_result"].isin([0.0, 1.0])
     ].copy()
@@ -30,11 +37,11 @@ def evaluate_elo_predictions(elo_history: pd.DataFrame) -> dict[str, float]:
 
 
 def main() -> None:
-    """Load Elo history and print baseline performance."""
+    """Load Elo history and print performance for the test season."""
     elo_history = pd.read_parquet(ELO_HISTORY_PATH)
-    metrics = evaluate_elo_predictions(elo_history)
+    metrics = evaluate_elo_predictions(elo_history, season=TEST_SEASON)
 
-    print("Elo baseline performance")
+    print(f"Elo performance: {TEST_SEASON} season")
     print("-" * 30)
     print(f"Games evaluated: {metrics['games_evaluated']:,.0f}")
     print(f"Winner accuracy: {metrics['accuracy']:.1%}")
