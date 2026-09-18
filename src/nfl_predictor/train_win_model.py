@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import pandas as pd
+from joblib import dump
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, brier_score_loss, log_loss
@@ -10,6 +11,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
 MODEL_DATASET_PATH = Path("data/processed/win_model_dataset.parquet")
+MODEL_OUTPUT_PATH = Path("models/logistic_win_model.joblib")
 
 TRAIN_END_SEASON = 2024
 TEST_SEASON = 2025
@@ -80,6 +82,8 @@ def main() -> None:
     """Train the win model and print 2025 test performance."""
     model_data = pd.read_parquet(MODEL_DATASET_PATH)
     model, metrics = train_and_evaluate(model_data)
+    MODEL_OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    dump(model, MODEL_OUTPUT_PATH)
 
     print("Logistic-regression win model: 2025 test season")
     print("-" * 50)
@@ -88,6 +92,7 @@ def main() -> None:
     print(f"Winner accuracy: {metrics['accuracy']:.1%}")
     print(f"Brier score: {metrics['brier_score']:.4f}")
     print(f"Log loss: {metrics['log_loss']:.4f}")
+    print(f"Saved model: {MODEL_OUTPUT_PATH}")
 
     classifier = model.named_steps["classifier"]
     coefficients = pd.Series(
